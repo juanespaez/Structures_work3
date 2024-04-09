@@ -1,123 +1,138 @@
-// A Java program to sort a linked list using Quicksort   
-
-import java.util.Scanner;
-
 class QuickSort {
     Node head;
 
-    /* a node of the doubly linked list */
     static class Node {
-        private int data;
+        private String data;
         private Node next;
         private Node prev;
 
-        Node(int value) {
+        Node(String value) {
             data = value;
             next = null;
             prev = null;
         }
     }
 
-    // A utility function to find last node of linked list
+    // Metod para obtener el ultimo nodo de la lista
     Node lastNode(Node node) {
         while (node.next != null)
             node = node.next;
         return node;
     }
 
-    /*
-     * Considers the last element as pivot, places the pivot element at its
-     * correct position in a sorted array, and places all smaller (smaller than
-     * pivot) to the left of the pivot and all greater elements to right of pivot
-     */
-    Node partition(Node l, Node h) {
-        // set pivot as h element
-        int x = h.data;
+    // Metodo para agregar un nodo al inicio de la lista
+    void push(String value) {
+        Node newNode = new Node(value);
+        if (head == null) {
+            head = newNode;
+            return;
+        }
 
-        // similar to i = l-1 for array implementation
-        Node i = l.prev;
+        newNode.next = head;
+        head.prev = newNode;
+        newNode.prev = null;
+        head = newNode;
+    }
 
-        // Similar to "for (int j = l; j <= h- 1; j++)"
-        for (Node j = l; j != h; j = j.next) {
-            if (j.data <= x) {
-                // Similar to i++ for array
-                i = (i == null) ? l : i.next;
-                int temp = i.data;
+    // Metodo para comparar dos nodos
+    boolean less(QuickSort.Node x, QuickSort.Node y) {
+        // Se toma como menor o igual por practicidad para su uso en el metodo partition
+        return x.data.compareTo(y.data) <= 0;
+    }
+
+    // METODO DE PARTICION
+    Node partition(Node lo, Node hi) {
+        // Pivote
+        Node x = hi;
+
+        Node i = lo.prev;
+
+        for (Node j = lo; j != hi; j = j.next) {
+            // Si el valor a la izquierda del pivote es menor o igual al del indice actual,
+            // aumentamos la i y hacemos el intercambio de los nodos i y j,
+            // cuando esto no pase, la j va a seguir el loop hasta hallar un valor
+            // mas grande que el pivote e intercambiarlo con el indice i
+
+            if (less(j, x)) {
+                // Pasamos al siguiente nodo i
+                if (i == null)
+                    i = lo;
+                else
+                    i = i.next;
+
+                // Intercambiamos los valores de los nodos i y j
+                String temp = i.data;
                 i.data = j.data;
                 j.data = temp;
             }
         }
-        i = (i == null) ? l : i.next; // Similar to i++
-        int temp = i.data;
-        i.data = h.data;
-        h.data = temp;
+
+        // Cuando terminamos de hacer todos los intercambios necesarios, aumentamos la i
+        if (i == null)
+            i = lo;
+        else
+            i = i.next;
+
+        // Intercambiamos el valor de i con el del pivote y retornamos i (que ahora es
+        // el pivote en su posicion final en la lista)
+        String temp = i.data;
+        i.data = hi.data;
+        hi.data = temp;
         return i;
+
+        // Al retornar el pivote estamos retornando las dos listas (menores a la
+        // izquierda y mayores a la derecha)
+        // para la lista con los menores al pivote accedemos a i.prev
+        // para la lista con los mayores al pivote accedemos a i.next
     }
 
-    /* A recursive implementation of quicksort for linked list */
-    void _quickSort(Node l, Node h) {
-        if (h != null && l != h && l != h.next) {
-            Node temp = partition(l, h);
-            _quickSort(l, temp.prev);
-            _quickSort(temp.next, h);
+    /** METODO RECURSIVO QUICKSORT */
+    // !----------------- NOTA IMPORTANTE AL PROFESOR ----------------!
+    // Como en este metodo estamos haciendo los intercambios de los valores de los
+    // nodos y no de sus referencias (prev y next) realmente no es necesario hacer
+    // concatenaciones, puesto que en ningun momento estamos moviendo nodos, solo
+    // estamos cambiando sus valores.
+    void quickSort(Node lo, Node hi) {
+        if (hi != null && lo != hi && lo != hi.next) {
+            Node temp = partition(lo, hi);
+            quickSort(lo, temp.prev);
+            quickSort(temp.next, hi);
         }
     }
 
-    // The main function is to sort a linked list. It mainly calls _quickSort()
-    public void quickSort(Node node) {
-        // Find last node
+    public void sort(Node node) {
         Node head = lastNode(node);
-
-        // Call the recursive QuickSort
-        _quickSort(node, head);
+        quickSort(node, head);
     }
 
-    // A utility function to print contents of arr
+    // Metodo creado para facilitar la visualizacion de la lista, no tiene
+    // relevancia en el algoritmo
     public void printList(Node head) {
         while (head != null) {
-            System.out.print(head.data + " ");
+            System.out.print(head.data + "<->");
             head = head.next;
         }
     }
 
-    /* Function to insert a node at the beginning of the Doubly Linked List */
-    void push(int new_Data) {
-        Node new_Node = new Node(new_Data); /* allocate node */
-
-        // if head is null, head = new_Node
-        if (head == null) {
-            head = new_Node;
-            return;
-        }
-
-        /* link the old list off the new node */
-        new_Node.next = head;
-
-        /* change prev of head node to new node */
-        head.prev = new_Node;
-
-        /* since we are adding at the begining, prev is always NULL */
-        new_Node.prev = null;
-
-        /* move the head to point to the new node */
-        head = new_Node;
-    }
-
-    /* Driver program to test above written function */
     public static void main(String[] args) {
         QuickSort list = new QuickSort();
-        list.push(6);
-        list.push(3);
-        list.push(5);
-        list.push(9);
-        list.push(1);
-        list.push(4);
+        NameGenerator nameGenerator = new NameGenerator(10);
 
-        System.out.println("Original Doubly Linked List::" + "\n");
+        // Se crean n nombres aleatorios
+        int n = 10;
+        for (int i = 0; i < n; i++) {
+            list.push(nameGenerator.getName());
+        }
+
+        list.push("Juan Esteban Paez");
+        list.push("Cristian Perez Arango");
+        list.push("Juan Jose Rios");
+
+        System.out.println("Lista Original:" + "\n");
         list.printList(list.head);
-        
-        System.out.println("\n" + "Sorted Doubly Linked List::");
-        list.quickSort(list.head);
+
+        System.out.println("\n" + "Lista final ordenada:");
+        list.sort(list.head);
         list.printList(list.head);
     }
 }
